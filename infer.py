@@ -30,7 +30,7 @@ if __name__ == '__main__':
     target_class = "banana"
     final_res = {target_class: [0, None]}
 
-    img_path = 'D:/ManhT04/object_color_recogntion/images/banana.jpg'
+    img_path = 'images/banana.jpg'
     bgr_img = cv2.imread(img_path)
     if bgr_img is None:
         print("Error: Image not loaded. Check the path.")

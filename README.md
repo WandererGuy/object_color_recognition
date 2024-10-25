@@ -29,6 +29,7 @@ To set up the environment, refer to the instructions provided in `prepare.md` fo
 1. **create_rgb.py**:
    - This script generates the RGB representation for a given range of hues.
    - **Usage**: `python create_rgb.py`
+   - result stored in folder rgb_for_hue_range, only black_grey_white dont have rgb cause im lazy lol
 
 2. **infer.py**:
    - This script performs inference on images, detecting the hue-based color of objects.

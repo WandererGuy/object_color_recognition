@@ -16,8 +16,8 @@ The program defines 12 distinct hue ranges according to color wheel theory, alon
 
 ---
 
-## presequisite 
-given a result image with known/ interested target class in it (aka a yolo bounding box crop image)
+## prerequisites 
+given a result image with known/ interested target class in it (example: a yolo bounding box crop image and its class)
 
 
 ## Environment Setup

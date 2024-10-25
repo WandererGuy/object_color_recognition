@@ -6,6 +6,7 @@ from PIL import Image
 import colorsys
 from collections import Counter
 import yaml
+from time import time 
 
 RANGE_HUE_LABEL = {str([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]): "red_to_orange", 
                    str([15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]): "orange_to_yellow", 
@@ -25,7 +26,8 @@ with open('config.yml', 'r') as file:
     config = yaml.safe_load(file)
 LOWER_VARIANCE = config["LOWER_VARIANCE"]
 MAX_VALUE = config["MAX_VALUE"]
-
+upper_variance = 1 - LOWER_VARIANCE
+lower_limit = MAX_VALUE * LOWER_VARIANCE
 def create_range_hue():
     total = []
     t = []
@@ -85,11 +87,10 @@ def hue_to_example_rgb(h, s, v):
 
 
 
-def padding(image_path):
+def padding(image_path, a = 100):
       # Load the image
   image = Image.open(image_path)
   # Define padding size for each side
-  a = 100
   top, bottom, left, right = a,a,a,a  # Adjust as needed
   # Choose padding color: (255, 255, 255) for white, (0, 0, 0) for black
   padding_color = (255, 255, 255)  # White padding, change to (0, 0, 0) for black
@@ -136,6 +137,32 @@ def mask_img(img, c):
   isolated = fix_background(b_mask, img)
   return isolated
  
+
+def remove_padding(padded_image, padding_size=100):
+    """
+    Removes padding from a padded image.
+
+    :param padded_image: Padded Image object.
+    :param padding_size: Size of the padding to remove from each side (default is 100).
+    :return: Original Image object without padding.
+    """
+    # Get the size of the padded image
+    # Get the dimensions of the padded image
+    # Get the dimensions of the padded image
+    height, width = padded_image.shape[:2]
+
+    # Define the bounding box to crop
+    left = padding_size
+    top = padding_size
+    right = width - padding_size
+    bottom = height - padding_size
+
+    # Crop the image to remove padding
+    original_image = padded_image[top:bottom, left:right]
+
+    return original_image
+    
+
 def check_non_hue_color(pixel):
       '''
       
@@ -145,7 +172,6 @@ def check_non_hue_color(pixel):
       vhs can handle white light illuminous , not color light 
       
       '''
-      upper_variance = 1 - LOWER_VARIANCE
       _,s, v = pixel
       #  case == 0 replace by <= MAX_VALUE * LOWER_VARIANCE
       '''
@@ -153,19 +179,24 @@ def check_non_hue_color(pixel):
       s       | v
       0       | x-value   -> grey change from black to grey to white 
       x-value | 0         -> always black
+
+
+
       so 4 cases of color grey, black, white 
-      '''
-      if s != 0 and v <= MAX_VALUE * LOWER_VARIANCE:
-        o = "black"
       elif s <= MAX_VALUE * LOWER_VARIANCE and v <= MAX_VALUE * LOWER_VARIANCE: # close to 0 
         o =  "black"
       elif s <= MAX_VALUE * LOWER_VARIANCE and v >= MAX_VALUE * LOWER_VARIANCE and v <= MAX_VALUE * upper_variance:
         o = "grey"
       elif s <= MAX_VALUE * LOWER_VARIANCE and v >= MAX_VALUE * upper_variance:
         o = "white"
+      '''
+
+      if s <= lower_limit:
+          return "black_grey_white"
+      elif s != 0 and v <= lower_limit:
+          return "black_grey_white"
       else: 
-        return None 
-      return "black_grey_white"
+          return None 
     
     
 def create_rgb_black_grey_white():
@@ -190,14 +221,18 @@ def find_main_color(img, all_hue_range):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     pixels = img.reshape((-1, 3))
     remain_color = []
+    first_pixel = [0, 0, 0] # BACKGROUND IS BLACK
     for x in pixels:
-        if np.all(x != pixels[0]): # remove first pixels, like first background pixel in isolated segment image, complete black 
+        x = x.tolist()
+        if x == first_pixel:
+            continue
+        else : # remove background pixel in isolated segment image, complete black 
             non_hue_color = check_non_hue_color(x) 
+            
             if non_hue_color != None:
               remain_color.append(non_hue_color) # check if in black_grey_white first 
             else:
               remain_color.append(x[0]) 
-            
     # remain_color = [x[0] for x in pixels if np.all(x != pixels[0])] # remove black pixels, like first padding pixel
     # keep the hue only 
     # hue class range from 0 to 179 in opencv 

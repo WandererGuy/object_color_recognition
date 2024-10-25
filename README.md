@@ -16,6 +16,10 @@ The program defines 12 distinct hue ranges according to color wheel theory, alon
 
 ---
 
+## presequisite 
+given a result image with known/ interested target class in it (aka a yolo bounding box crop image)
+
+
 ## Environment Setup
 
 To set up the environment, refer to the instructions provided in `prepare.md` for a complete guide on installing dependencies and configuring the environment.
@@ -37,8 +41,10 @@ To set up the environment, refer to the instructions provided in `prepare.md` fo
 
 3. **main.py**:
    - This script sets up a FastAPI server to expose the inference functionality through an API.
+   first fix your own ip in config.yml file
    - **Usage**: `python main.py`
    
+   using postman request , with form-data in body , with 2 keys , target_class and img_path
 ---
 
 ## API Usage

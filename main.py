@@ -1,5 +1,4 @@
 print("............. Initialization .............")
-
 import ultralytics
 ultralytics.checks()
 from ultralytics import YOLO
@@ -7,7 +6,7 @@ import uuid
 import os
 import cv2
 import numpy as np
-from utils import create_range_hue, padding, mask_img, find_main_color
+from utils import create_range_hue, padding, mask_img, find_main_color, remove_padding
 from utils import RANGE_HUE_LABEL
 import yaml
 import uvicorn
@@ -49,16 +48,17 @@ async def color_recognize(target_class: str = Form(...), img_path: str = Form(..
     # os.makedirs(out_folder, exist_ok=True)
     # pad_img_path = os.path.join(out_folder, 'padded.png')
     # padding(img_path, pad_img_path)
-    padded_image = padding(img_path) # PIL RGB result
+    padded_image = padding(img_path, a = 100) # PIL RGB result
 
     results = model.predict(conf=0.2, source=padded_image, save=False)
-    print ('done segment')
     for r in results:
         img = np.copy(r.orig_img)
         for ci, c in enumerate(r):
             label = c.names[c.boxes.cls.tolist().pop()]
             conf = c.boxes.conf.tolist().pop()
             isolated = mask_img(img=img, c=c)    
+            isolated = remove_padding(isolated)
+
             main_hue_range = find_main_color(isolated, all_hue_range) 
             rgb_class = RANGE_HUE_LABEL[main_hue_range]
             # save_path_isolated = os.path.join(out_folder, f'{label}_{ci}_{conf:.2f}.png')
@@ -85,7 +85,6 @@ async def color_recognize(target_class: str = Form(...), img_path: str = Form(..
                     "hue_range": color
                 }
                 }                
-    return final_res[target_class][1]
 
 def main():
     print('INITIALIZING FASTAPI SERVER')

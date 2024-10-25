@@ -1,7 +1,7 @@
 HOST_IP : 10.0.68.100
 PORT_NUM : 3003
 MAX_VALUE : 255 # in opencv s, v has max 255 not 100
-LOWER_VARIANCE : 0.1 # variance border of s,v in code to be consider black_grey_white or other color
+LOWER_VARIANCE : 10 # variance border of s,v in code to be consider black_grey_white or other color
 
 AVAIL_CLASS:
   0: person

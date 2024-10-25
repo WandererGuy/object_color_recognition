@@ -8,6 +8,7 @@ from collections import Counter
 import yaml
 from time import time 
 
+
 RANGE_HUE_LABEL = {str([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]): "red_to_orange", 
                    str([15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]): "orange_to_yellow", 
                    str([30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]): "yellow_to_chartreuse_green", 
@@ -26,8 +27,13 @@ with open('config.yml', 'r') as file:
     config = yaml.safe_load(file)
 LOWER_VARIANCE = config["LOWER_VARIANCE"]
 MAX_VALUE = config["MAX_VALUE"]
-upper_variance = 1 - LOWER_VARIANCE
-lower_limit = MAX_VALUE * LOWER_VARIANCE
+# upper_variance = 1 - LOWER_VARIANCE
+
+def fix_path(path):
+    path = str(path)
+    new_path = path.replace('\\\\','/') 
+    return new_path.replace('\\','/')
+
 def create_range_hue():
     total = []
     t = []
@@ -163,7 +169,7 @@ def remove_padding(padded_image, padding_size=100):
     return original_image
     
 
-def check_non_hue_color(pixel):
+def check_non_hue_color(pixel, adaptive_constant):
       '''
       
       so white object , influence by color light can still be labeled white, black influence can still be black 
@@ -172,6 +178,10 @@ def check_non_hue_color(pixel):
       vhs can handle white light illuminous , not color light 
       
       '''
+      lower_variance = LOWER_VARIANCE + adaptive_constant
+      # lower_limit = MAX_VALUE * lower_variance
+      lower_limit = lower_variance
+
       _,s, v = pixel
       #  case == 0 replace by <= MAX_VALUE * LOWER_VARIANCE
       '''
@@ -190,49 +200,36 @@ def check_non_hue_color(pixel):
       elif s <= MAX_VALUE * LOWER_VARIANCE and v >= MAX_VALUE * upper_variance:
         o = "white"
       '''
-
       if s <= lower_limit:
           return "black_grey_white"
-      elif s != 0 and v <= lower_limit:
-          return "black_grey_white"
+      # elif s <= lower_limit and v <= lower_limit:
+      #     return "black_grey_white"
       else: 
           return None 
-    
-    
-def create_rgb_black_grey_white():
-      ls = []
-      upper_variance = 1 - LOWER_VARIANCE
-
-      for s in range(MAX_VALUE):
-          for v in range(MAX_VALUE):
-              if s != 0 and v <= MAX_VALUE * LOWER_VARIANCE:
-                    ls.append((s, v))
-              elif s <= MAX_VALUE * LOWER_VARIANCE and v <= MAX_VALUE * LOWER_VARIANCE: # close to 0 
-                    ls.append((s, v))
-              elif s <= MAX_VALUE * LOWER_VARIANCE and v >= MAX_VALUE * LOWER_VARIANCE and v <= MAX_VALUE * upper_variance:
-                    ls.append((s, v))
-              elif s <= MAX_VALUE * LOWER_VARIANCE and v >= MAX_VALUE * upper_variance:
-                    ls.append((s, v))
-      return ls
-              
-
+                  
 def find_main_color(img, all_hue_range):
     print ('start find main color')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     pixels = img.reshape((-1, 3))
     remain_color = []
     first_pixel = [0, 0, 0] # BACKGROUND IS BLACK
+    remain_pixels = []
     for x in pixels:
         x = x.tolist()
         if x == first_pixel:
             continue
-        else : # remove background pixel in isolated segment image, complete black 
-            non_hue_color = check_non_hue_color(x) 
-            
-            if non_hue_color != None:
-              remain_color.append(non_hue_color) # check if in black_grey_white first 
-            else:
-              remain_color.append(x[0]) 
+        else: 
+            remain_pixels.append(x)
+
+    adaptive_constant = 10
+
+    for x in remain_pixels:
+        non_hue_color = check_non_hue_color(pixel = x, adaptive_constant=adaptive_constant) 
+        
+        if non_hue_color != None:
+          remain_color.append(non_hue_color) # check if in black_grey_white first 
+        else:
+          remain_color.append(x[0]) 
     # remain_color = [x[0] for x in pixels if np.all(x != pixels[0])] # remove black pixels, like first padding pixel
     # keep the hue only 
     # hue class range from 0 to 179 in opencv 
@@ -245,6 +242,74 @@ def find_main_color(img, all_hue_range):
     hue_range_sorted_dict = sort_dict_by_value(t)
     main_hue_range = next(iter(hue_range_sorted_dict))
     return main_hue_range
+
+def pseudo_find_main_color(img, all_hue_range, add):
+    print ('start find main color')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    pixels = img.reshape((-1, 3))
+    remain_color = []
+    remain_pixels = []
+    remain_lightness = []
+    remain_saturation = []
+    remain_hue = []
+    first_pixel = [0, 0, 0] # BACKGROUND IS BLACK, this might also delete pure black object
+    for x in pixels:
+        x = x.tolist()
+        if x == first_pixel:
+            continue
+        else: 
+            remain_pixels.append(x)
+            remain_lightness.append(x[2])
+            remain_saturation.append(x[1])
+            remain_hue.append(x[0])
+    average_lightness = cal_average(remain_lightness)
+    average_saturation = cal_average(remain_saturation)
+    average_hue = cal_average(remain_hue)
+    adaptive_constant = cal_adapt_variance(add, average_lightness)
+    for x in remain_pixels:
+        non_hue_color = check_non_hue_color(pixel = x, adaptive_constant=adaptive_constant) 
+        
+        if non_hue_color != None:
+          remain_color.append(non_hue_color) # check if in black_grey_white first 
+        else:
+          remain_color.append(x[0]) 
+    # remain_color = [x[0] for x in pixels if np.all(x != pixels[0])] # remove black pixels, like first padding pixel
+    # keep the hue only 
+    # hue class range from 0 to 179 in opencv 
+    single_hue_count = counting(remain_color) # count occurence of each hue value 
+    t = {}
+    for hue_range in all_hue_range:
+          t[str(hue_range)] = 0
+          for hue_value in hue_range:
+                t[str(hue_range)] += single_hue_count[hue_value]
+    hue_range_sorted_dict = sort_dict_by_value(t)
+    main_hue_range = next(iter(hue_range_sorted_dict))
+    return main_hue_range, average_hue, average_saturation, average_lightness
+
+
+def cal_adapt_variance(add, average_lightness):
+    # light range from 0 to 255 in opencv HSV 
+    print ("average_lightness", average_lightness)
+    '''
+    while black lower or upper saturation , it is still black , 
+    white or gray still fsall in class black_grey_white, 
+    however illumation/ light color 's light saturation effect will be filtered out 
+    (by adaptive_constant), so that its saturation need be meet higher limit be escape 
+    black_grey_white class (like black hole lol)
+    with 179/255 lightness , we need to raise limit for LOWER_VARIANCE 
+    but little lightness or shadow, we need decrease saturation , or else
+    it falls to black_grey_white class
+    hence, i introduce to u the adaptive_constant
+
+    
+    '''
+    return add
+  
+def cal_average(ls): # calculate object light upon , since light color can affect object color
+    # light range from 0 to 255 in opencv HSV 
+    average = sum(ls) / len(ls)
+    return average
+
 
 # def find_average_color_rgb(save_path, img, n_main_color = 1):
 #     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 

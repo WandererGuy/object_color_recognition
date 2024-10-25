@@ -1,5 +1,5 @@
 import cv2
-from main import create_range_hue, hue_to_example_rgb, de_normalize_value
+from utils import create_range_hue, hue_to_example_rgb, de_normalize_value
 from PIL import Image
 import colorsys
 

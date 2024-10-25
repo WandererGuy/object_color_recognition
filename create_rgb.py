@@ -1,6 +1,6 @@
 from PIL import Image
 import colorsys
-from utils import create_range_hue, hue_to_example_rgb, de_normalize_value, create_rgb_black_grey_white
+from utils import create_range_hue, hue_to_example_rgb, de_normalize_value
 from utils import RANGE_HUE_LABEL
 import os
 all_sample_rgb_range = {}

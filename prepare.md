@@ -7,3 +7,10 @@ conda activate /home/ai-ubuntu/hddnew/Manh/obj_color/env
 pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113 ultralytics
 pip install numpy==1.24.1
 pip install fastapi uvicorn pydantic python-multipart
+
+
+window 
+conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia 
+pip install numpy==1.24.1
+pip install fastapi uvicorn pydantic python-multipart
+

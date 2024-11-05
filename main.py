@@ -13,8 +13,15 @@ import yaml
 import uvicorn
 from fastapi import FastAPI, HTTPException, Form, Request
 app = FastAPI()
+import torch 
+print("CUDA is available:", torch.cuda.is_available())
 
 model = YOLO("yolo11x-seg.pt")
+# Assuming `model` is your PyTorch model
+model.to('cuda')
+
+print('model on gpu' ,next(model.parameters()).is_cuda)
+
 os.makedirs('output', exist_ok=True)
 all_hue_range = create_range_hue()
 
@@ -25,9 +32,10 @@ HOST_IP = config['HOST_IP']
 PORT_NUM = config['PORT_NUM'] 
 AVAIL_CLASS = config["AVAIL_CLASS"]
 avail_class = AVAIL_CLASS.values()
-
+import time 
 @app.post("/color-recognize") 
 async def color_recognize(target_class: str = Form(...), img_path: str = Form(...)):
+    start = time.time()
     try:
             if target_class not in avail_class:
                 return {
@@ -80,6 +88,8 @@ async def color_recognize(target_class: str = Form(...), img_path: str = Form(..
                         "result": None
                         }     
             color = final_res[target_class][1]
+            print ('infer time ', time.time() - start)
+
             return {
                         "status": 1,
                         "error_code": None,

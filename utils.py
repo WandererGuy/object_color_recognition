@@ -208,7 +208,6 @@ def check_non_hue_color(pixel, adaptive_constant):
           return None 
                   
 def find_main_color(img, all_hue_range):
-    print ('start find main color')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     pixels = img.reshape((-1, 3))
     remain_color = []

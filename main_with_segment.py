@@ -35,6 +35,11 @@ avail_class = AVAIL_CLASS.values()
 import time 
 @app.post("/segment-with-color-recognize") 
 async def segment_color_recognize(target_class: str = Form(...), img_path: str = Form(...)):
+    """
+    given image have object:
+    segment interested object with specific class 
+    then find hue range of the object
+    """
     start = time.time()
     try:
             if target_class not in avail_class:

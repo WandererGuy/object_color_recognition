@@ -42,7 +42,9 @@ To set up the environment, refer to the instructions provided in `prepare.md` fo
 3. **main.py**:
    - This script sets up a FastAPI server to expose the inference functionality through an API.
    first fix your own ip in config.yml file
-   - **Usage**: `python main.py`
+   - **Usage**: `python main_with_segment.py`
+   this will turn on the server with API for upcoming request , u can request by postman 
+   (it segment the interest object class inside image with the object and recognise the object hue color range)
    
    using postman request , with form-data in body , with 2 keys , target_class and img_path
 ---

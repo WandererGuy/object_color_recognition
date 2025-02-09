@@ -39,7 +39,7 @@ To set up the environment, refer to the instructions provided in `prepare.md` fo
    - This script performs inference on images, detecting the hue-based color of objects.
    - **Usage**: `python infer.py`
 
-3. **main_with_segment.py.py**:
+3. **main_with_segment.py**:
    - This script sets up a FastAPI server to expose the inference functionality through an API.
    first fix your own ip in config.yml file
    - **Usage**: `python main_with_segment.py`

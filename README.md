@@ -1,5 +1,8 @@
-python main.py
+this is just a toy project using YOLO in main.py
 
+```
+python main.py
+```
 ```
 python upload_main.py
 ```

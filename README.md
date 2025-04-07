@@ -1,4 +1,13 @@
-# Object Color Recognition
+python main.py
+
+```
+python upload_main.py
+```
+
+
+
+
+<!-- # Object Color Recognition
 
 ## Description
 This project focuses on recognizing the predominant color (hue) of objects using computer vision based on the color wheel theory. Each object is classified by a specific hue range, making use of the **hue** component from the HSV color space for more accurate color detection than BGR. 
@@ -55,4 +64,4 @@ Once the FastAPI server is running using `main.py`, you can interact with the in
 
 ---
 
-Feel free to extend or modify the code based on your specific use cases.
+Feel free to extend or modify the code based on your specific use cases. -->

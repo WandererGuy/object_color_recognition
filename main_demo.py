@@ -53,7 +53,8 @@ def color_recognize(image_path):
     return response.json()["color"]
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-SAVE_FOLDER = "static"
+SAVE_FOLDER = "demo"
+os.makedirs(SAVE_FOLDER, exist_ok=True)
 
 @app.post("/detect-recognize-color") 
 async def detect_recognize_color(
@@ -107,18 +108,18 @@ async def detect_recognize_color(
                     print ("sending request to color recognize server")
                     rgb_class = color_recognize(temp_path)
 
-                #     cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+                    cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
 
-                #     # Draw the stick line (vertical line pointing down)
-                #     cv2.line(img, (int(x2), int(y2)), (int(x2), int(y2) + 40), (0, 0, 255), 2)
+                    # Draw the stick line (vertical line pointing down)
+                    cv2.line(img, (int(x2), int(y2)), (int(x2), int(y2) + 40), (0, 0, 255), 2)
 
-                #     # Add label text at the top of the stick
-                #     cv2.putText(img, rgb_class, (int(x2), int(y2) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (128, 0, 128), 2)
+                    # Add label text at the top of the stick
+                    cv2.putText(img, rgb_class, (int(x2), int(y2) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (128, 0, 128), 2)
                 
-                # name_img = str(uuid.uuid4()) + ".jpg"
-                # res_path = os.path.join(SAVE_FOLDER, name_img) 
+                name_img = os.path.basename(img_path)
+                res_path = os.path.join(SAVE_FOLDER, name_img) 
                 
-                # cv2.imwrite(res_path, img)
+                cv2.imwrite(res_path, img)
 
             print ('infer time ', time.time() - start)
 

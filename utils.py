@@ -9,19 +9,36 @@ import yaml
 from time import time 
 
 
-RANGE_HUE_LABEL = {str([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]): "red_to_orange", 
-                   str([15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]): "orange_to_yellow", 
-                   str([30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]): "yellow_to_chartreuse_green", 
-                   str([45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]): "chartreuse_green_to_green", 
-                   str([60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74]): "green_to_spring_green", 
-                   str([75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]): "spring_green_to_cyan", 
-                   str([90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104]): "cyan_to_azure", 
-                   str([105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119]): "azure_to_blue", 
-                   str([120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134]): "blue_to_violet", 
-                   str([135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149]): "violet_to_magenta", 
-                   str([150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164]): "magenta_to_rose", 
-                   str([165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179]): "rose_to_red",
+# RANGE_HUE_LABEL = {str([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]): "red_to_orange", 
+#                    str([15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]): "orange_to_yellow", 
+#                    str([30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]): "yellow_to_chartreuse_green", 
+#                    str([45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]): "chartreuse_green_to_green", 
+#                    str([60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74]): "green_to_spring_green", 
+#                    str([75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]): "spring_green_to_cyan", 
+#                    str([90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104]): "cyan_to_azure", 
+#                    str([105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119]): "azure_to_blue", 
+#                    str([120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134]): "blue_to_violet", 
+#                    str([135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149]): "violet_to_magenta", 
+#                    str([150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164]): "magenta_to_rose", 
+#                    str([165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179]): "rose_to_red",
+#                    str(["black_grey_white"]): "black_grey_white"}
+
+
+RANGE_HUE_LABEL = {str([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]): "red", 
+                   str([15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]): "orange", 
+                   str([30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]): "yellow", 
+                   str([45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]): "chartreuse_green", 
+                   str([60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74]): "green", 
+                   str([75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]): "spring_green", 
+                   str([90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104]): "cyan", 
+                   str([105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119]): "azure", 
+                   str([120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134]): "blue", 
+                   str([135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149]): "violet", 
+                   str([150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164]): "magenta", 
+                   str([165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179]): "rose",
                    str(["black_grey_white"]): "black_grey_white"}
+                  #  str(["grey"]): "grey",
+                  #  str(["white"]): "white",}
 
 with open('config.yml', 'r') as file:
     config = yaml.safe_load(file)
@@ -178,7 +195,7 @@ def check_non_hue_color(pixel, adaptive_constant):
       vhs can handle white light illuminous , not color light 
       
       '''
-      lower_variance = LOWER_VARIANCE + adaptive_constant
+      lower_variance = LOWER_VARIANCE
       # lower_limit = MAX_VALUE * lower_variance
       lower_limit = lower_variance
 
@@ -200,12 +217,21 @@ def check_non_hue_color(pixel, adaptive_constant):
       elif s <= MAX_VALUE * LOWER_VARIANCE and v >= MAX_VALUE * upper_variance:
         o = "white"
       '''
+      '''
+      Black: S can be anything, but 𝑉 = 0
+      White: 𝑆 = 0 and 𝑉 = 1
+      Grey: 𝑆 = 0 and 0 < 𝑉 < 1
+      '''
+      # if v <= LOWER_VARIANCE: # close to 0 
+      #   return "black"
+      # elif s <= LOWER_VARIANCE and v >= MAX_VALUE - LOWER_VARIANCE: 
+      #   return "white"
+      # elif s <= LOWER_VARIANCE and LOWER_VARIANCE <= v and v <= MAX_VALUE - LOWER_VARIANCE:
+      #   return "grey"   
       if s <= lower_limit:
-          return "black_grey_white"
-      # elif s <= lower_limit and v <= lower_limit:
-      #     return "black_grey_white"
+          return "black_grey_white"   
       else: 
-          return None 
+        return None 
                   
 def find_main_color(img, all_hue_range):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -220,8 +246,8 @@ def find_main_color(img, all_hue_range):
         else: 
             remain_pixels.append(x)
 
-    adaptive_constant = 10
-
+    adaptive_constant = 25
+    count_hue = 0 
     for x in remain_pixels:
         non_hue_color = check_non_hue_color(pixel = x, adaptive_constant=adaptive_constant) 
         
@@ -233,6 +259,7 @@ def find_main_color(img, all_hue_range):
     # keep the hue only 
     # hue class range from 0 to 179 in opencv 
     single_hue_count = counting(remain_color) # count occurence of each hue value 
+
     t = {}
     for hue_range in all_hue_range:
           t[str(hue_range)] = 0
@@ -240,6 +267,17 @@ def find_main_color(img, all_hue_range):
                 t[str(hue_range)] += single_hue_count[hue_value]
     hue_range_sorted_dict = sort_dict_by_value(t)
     main_hue_range = next(iter(hue_range_sorted_dict))
+    # Initialize the sum
+    # total_sum = 0
+
+    # # Calculate the total sum
+    # for key, value in hue_range_sorted_dict.items():
+    #     total_sum += value
+
+    # # Now print each value as a percentage of the sum
+    # for key, value in hue_range_sorted_dict.items():
+    #     percentage = (value / total_sum) * 100
+        # print(f"Percentage: {percentage:.2f}%")
     return main_hue_range
 
 def pseudo_find_main_color(img, all_hue_range, add):

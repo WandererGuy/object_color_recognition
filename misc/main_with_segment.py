@@ -16,8 +16,7 @@ app = FastAPI()
 import torch 
 print("CUDA is available:", torch.cuda.is_available())
 
-# model = YOLO("yolo11x-seg.pt")
-model = YOLO("yolo11x.pt")
+model = YOLO("yolo11x-seg.pt")
 # Assuming `model` is your PyTorch model
 model.to('cuda')
 
@@ -34,49 +33,25 @@ PORT_NUM = config['PORT_NUM']
 AVAIL_CLASS = config["AVAIL_CLASS"]
 avail_class = AVAIL_CLASS.values()
 import time 
-from PIL import Image
-import requests
-
-def color_recognize(image_path):
-
-    url = f"http://{HOST_IP}:4003/recognize-color"
-
-    payload = {'image_path': image_path}
-    files=[
-
-    ]
-    headers = {}
-
-    response = requests.request("POST", url, headers=headers, data=payload, files=files)
-
-    print(response.text)
-    return response.json()["color"]
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-SAVE_FOLDER = "static"
-
-@app.post("/detect-recognize-color") 
-async def detect_recognize_color(
-    #  target_class: str = Form(...), 
-    image_path: str = Form(...)):
+@app.post("/segment-with-color-recognize") 
+async def segment_color_recognize(target_class: str = Form(...), 
+                                  img_path: str = Form(...)):
     """
     given image have object:
     segment interested object with specific class 
     then find hue range of the object
     """
-    img_path = image_path
     start = time.time()
     try:
-            # if target_class not in avail_class:
-            #     return {
-            #             "status": 0,
-            #             "error_code": 400,
-            #             "error_message": f"target_class '{target_class}' unavailable.Available target class are {avail_class}",
-            #             "result": None
-            #             } 
-            # final_res = {target_class: [0, None]}
-
+            if target_class not in avail_class:
+                return {
+                        "status": 0,
+                        "error_code": 400,
+                        "error_message": f"target_class '{target_class}' unavailable.Available target class are {avail_class}",
+                        "result": None
+                        } 
             img_path = fix_path(img_path)
+            final_res = {target_class: [0, None]}
             bgr_img = cv2.imread(img_path)
             if bgr_img is None:
                 return {
@@ -85,50 +60,50 @@ async def detect_recognize_color(
                         "error_message": "Error: Image not loaded. Check the path",
                         "result": None
                         } 
+            # uuid = str(uuid.uuid4())
+            # out_folder = f'output/{uuid}'
+            # os.makedirs(out_folder, exist_ok=True)
+            # pad_img_path = os.path.join(out_folder, 'padded.png')
+            # padding(img_path, pad_img_path)
             padded_image = padding(img_path, a = 100) # PIL RGB result
 
             batch_yolo_result = model.predict(conf=0.2, source=padded_image, save=False)
             for single_image_result in batch_yolo_result:
                 img = np.copy(single_image_result.orig_img)
                 for ci, single_object_result in enumerate(single_image_result):
-                    
                     class_id = single_object_result.boxes.cls.tolist().pop()
                     label = single_object_result.names[class_id]
-                    
-                    ########################################################
-                    if label not in ["bicycle","car","motorcycle","bus","truck"]:
-                        continue
                     conf = single_object_result.boxes.conf.tolist().pop()
-                    x1, y1, x2, y2 = single_object_result.boxes.xyxy.tolist()[0]
-                    cropped_image = img[int(y1):int(y2), int(x1):int(x2)]
-                    temp_path = os.path.join(current_dir, "temp", str(uuid.uuid4()) + ".jpg")
-                    os.makedirs("temp", exist_ok=True)
-                    cv2.imwrite(temp_path, cropped_image)
-                    print ("sending request to color recognize server")
-                    rgb_class = color_recognize(temp_path)
-
-                #     cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
-
-                #     # Draw the stick line (vertical line pointing down)
-                #     cv2.line(img, (int(x2), int(y2)), (int(x2), int(y2) + 40), (0, 0, 255), 2)
-
-                #     # Add label text at the top of the stick
-                #     cv2.putText(img, rgb_class, (int(x2), int(y2) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (128, 0, 128), 2)
-                
-                # name_img = str(uuid.uuid4()) + ".jpg"
-                # res_path = os.path.join(SAVE_FOLDER, name_img) 
-                
-                # cv2.imwrite(res_path, img)
-
+                    isolated = mask_img(img=img, c=single_object_result)    
+                    isolated = remove_padding(isolated)
+                    
+                    main_hue_range = find_main_color(isolated, all_hue_range) 
+                    rgb_class = RANGE_HUE_LABEL[main_hue_range]
+                    # save_path_isolated = os.path.join(out_folder, f'{label}_{ci}_{conf:.2f}.png')
+                    # cv2.imwrite(save_path_isolated, isolated) # isolated is BGR, yolo output is BGR
+                    # print ('save_path_isolated', save_path_isolated)
+                    # print ('main_hue_range', rgb_class)
+                    if label == target_class:
+                        if conf > final_res[target_class][0]:
+                            final_res[target_class][0] = conf
+                            final_res[target_class][1] = rgb_class
+            if final_res[target_class][0] == 0:
+                return {
+                        "status": 0,
+                        "error_code": 400,
+                        "error_message": "cannot detect target_class object to segment. Check if correct image have target object in it",
+                        "result": None
+                        }     
+            color = final_res[target_class][1]
             print ('infer time ', time.time() - start)
 
             return {
                         "status": 1,
                         "error_code": None,
                         "error_message": None,
-                        "result": None
-                            
-                        
+                        "result": {
+                            "hue_range": color
+                        }
                         }         
     except Exception as e:
                 return {

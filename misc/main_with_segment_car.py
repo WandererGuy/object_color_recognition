@@ -33,8 +33,10 @@ PORT_NUM = config['PORT_NUM']
 AVAIL_CLASS = config["AVAIL_CLASS"]
 avail_class = AVAIL_CLASS.values()
 import time 
+from PIL import Image
 @app.post("/segment-with-color-recognize") 
-async def segment_color_recognize(target_class: str = Form(...), img_path: str = Form(...)):
+async def segment_color_recognize(target_class: str = Form(...), 
+                                  img_path: str = Form(...)):
     """
     given image have object:
     segment interested object with specific class 
@@ -66,21 +68,28 @@ async def segment_color_recognize(target_class: str = Form(...), img_path: str =
             # padding(img_path, pad_img_path)
             padded_image = padding(img_path, a = 100) # PIL RGB result
 
-            results = model.predict(conf=0.2, source=padded_image, save=False)
-            for r in results:
-                img = np.copy(r.orig_img)
-                for ci, c in enumerate(r):
-                    label = c.names[c.boxes.cls.tolist().pop()]
-                    conf = c.boxes.conf.tolist().pop()
-                    isolated = mask_img(img=img, c=c)    
+            batch_yolo_result = model.predict(conf=0.2, source=padded_image, save=False)
+            for single_image_result in batch_yolo_result:
+                img = np.copy(single_image_result.orig_img)
+                for ci, single_object_result in enumerate(single_image_result):
+                    class_id = single_object_result.boxes.cls.tolist().pop()
+                    label = single_object_result.names[class_id]
+                    ########################################################
+                    if label != target_class:
+                        continue
+                    conf = single_object_result.boxes.conf.tolist().pop()
+                    isolated = mask_img(img=img, c=single_object_result)    
                     isolated = remove_padding(isolated)
 
                     main_hue_range = find_main_color(isolated, all_hue_range) 
                     rgb_class = RANGE_HUE_LABEL[main_hue_range]
-                    # save_path_isolated = os.path.join(out_folder, f'{label}_{ci}_{conf:.2f}.png')
-                    # cv2.imwrite(save_path_isolated, isolated) # isolated is BGR, yolo output is BGR
-                    # print ('save_path_isolated', save_path_isolated)
-                    # print ('main_hue_range', rgb_class)
+                    folder_save = "collect_car"
+                    color_folder = os.path.join(folder_save, rgb_class)
+                    os.makedirs(color_folder, exist_ok=True)
+                    name_image = str(uuid.uuid4()) + ".jpg"
+                    cv2.imwrite(os.path.join(color_folder, name_image), isolated)  # You can change the file format (e.g., .png)
+                    ########################################################
+                    
                     if label == target_class:
                         if conf > final_res[target_class][0]:
                             final_res[target_class][0] = conf

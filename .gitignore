@@ -2,3 +2,8 @@ runs
 output
 env
 *.pt
+/demo
+/static
+/temp
+/upload
+video_demo.mp4

@@ -1,8 +1,0 @@
-D:/ManhT04/white/cat-sunbathing-indoors-stockcake.jpg 
-add_variance: 102 
-class: black_grey_white 
-ave_hue: 13.670091351287223 
-ave_sat: 119.30067623680152 
-ave_light: 63.75710048641594
-
-

@@ -1,8 +1,8 @@
-HOST_IP : 192.168.1.5
+HOST_IP : 192.168.1.8
 PORT_NUM : 3013
 MAX_VALUE : 255 # in opencv s, v has max 255 not 100
 LOWER_VARIANCE : 10 # variance border of s,v in code to be consider black_grey_white or other color
-
+COLOR_SERVER_PORT : 4003
 AVAIL_CLASS:
   0: person
   1: bicycle

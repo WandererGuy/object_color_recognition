@@ -4,8 +4,9 @@
 
 python 3.10 
 pip install numpy==1.24.1
-pip install fastapi uvicorn pydantic python-multipart
+pip install fastapi uvicorn pydantic python-multipart requests
 
 
-
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+pip install ultralytics
 
